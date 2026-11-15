@@ -1,417 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>飯飯約 - 好的飯友，不用等</title>
+    <style>
+        :root {
+            --primary-pink: #F78296;
+            --primary-purple: #D8C4F5;
+            --bg-color: #FCF9F5;
+            --text-dark: #333333;
+            --text-gray: #888888;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-dark); padding-bottom: 70px; max-width: 480px; margin: 0 auto; position: relative; }
+        
+        /* 顶部导航 */
+        .header { padding: 20px; display: flex; justify-content: space-between; align-items: center; background: white; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
+        .logo { font-size: 20px; font-weight: bold; color: var(--primary-pink); display: flex; align-items: center; gap: 8px;}
+        .logo-icon { font-size: 24px; }
 
-#include <iostream>
-#include <cstdlib>
-using namespace std;
+        /* 主容器 */
+        .container { padding: 20px; }
 
-const int MAXN = 55;
-const int MAXM = 1005;
+        /* 顶部卡片区 */
+        .hero-section { display: flex; gap: 10px; margin-bottom: 24px; }
+        .hero-btn { flex: 1; padding: 20px 10px; border-radius: 16px; text-align: center; color: white; font-weight: bold; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: transform 0.2s; }
+        .hero-btn:active { transform: scale(0.96); }
+        .btn-pink { background: linear-gradient(135deg, #FFA1B2, #F78296); box-shadow: 0 8px 15px rgba(247, 130, 150, 0.3); }
+        .btn-purple { background: linear-gradient(135deg, #E2D4F8, #C9AEF0); box-shadow: 0 8px 15px rgba(201, 174, 240, 0.3); }
+        .hero-btn span { font-size: 13px; font-weight: normal; opacity: 0.9; }
 
-int n, m, c, s;
+        /* 标题 */
+        .section-title { font-size: 16px; font-weight: bold; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .section-title a { font-size: 12px; color: var(--text-gray); text-decoration: none; }
 
-int u[MAXN], v[MAXN];
-int x[MAXM], y[MAXM];
+        /* 料理网格 */
+        .food-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 30px; }
+        .food-item { background: white; border-radius: 12px; padding: 12px 5px; text-align: center; font-size: 12px; color: var(--text-dark); box-shadow: 0 2px 8px rgba(0,0,0,0.03); cursor: pointer; border: 1px solid transparent; transition: all 0.2s; }
+        .food-item:active, .food-item.active { border-color: var(--primary-pink); background: #FFF0F3; }
+        .food-icon { font-size: 24px; margin-bottom: 4px; display: block; }
 
-int D[MAXM], f[MAXM], p[MAXM];
-int h[MAXN], K[MAXN];
+        /* 底部导航栏 */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; background: white; display: flex; justify-content: space-around; padding: 12px 0 20px 0; border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -4px 12px rgba(0,0,0,0.05); z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--text-gray); cursor: pointer; }
+        .nav-item.active { color: var(--primary-pink); }
+        .nav-icon { font-size: 20px; margin-bottom: 4px; }
 
-int capacity[MAXN];
+        /* 弹窗设置 (发起页面) */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: flex-end; z-index: 999; }
+        .modal-content { background: white; width: 100%; max-width: 480px; height: 85%; border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 24px; overflow-y: auto; display: flex; flex-direction: column;}
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h2 { font-size: 18px; }
+        .close-btn { font-size: 24px; color: #ccc; cursor: pointer; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 8px; color: #555;}
+        .form-control { width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 10px; background: #fafafa; font-size: 14px; outline: none;}
+        
+        .tag-group { display: flex; flex-wrap: wrap; gap: 10px; }
+        .tag { padding: 8px 16px; border-radius: 20px; background: #f0f0f0; font-size: 13px; cursor: pointer; }
+        .tag.selected { background: var(--primary-pink); color: white; }
 
-int openCenter[MAXN];
-int openStore[MAXM];
+        .submit-btn { background: var(--primary-pink); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: bold; margin-top: auto; cursor: pointer; }
+    </style>
+</head>
+<body>
 
-int supply[MAXM][MAXN];
+    <!-- 顶部 -->
+    <div class="header">
+        <div class="logo">
+            <span class="logo-icon">🍙</span> 飯飯約
+        </div>
+        <div style="font-size:20px; color:#ccc;">🔔</div>
+    </div>
 
-long long profit[MAXM];
+    <div class="container">
+        <!-- 顶部发起区 -->
+        <div class="hero-section">
+            <div class="hero-btn btn-pink" onclick="openModal()">
+                <span style="font-size: 28px;">⚡</span>
+                隨時約飯
+                <span>快速找到一起吃飯的飯友</span>
+            </div>
+            <div class="hero-btn btn-purple" onclick="openModal()">
+                <span style="font-size: 28px;">✨</span>
+                發起聚會
+                <span>邀請好友，投票決定吃哪裡</span>
+            </div>
+        </div>
 
+        <!-- 想吃啥 -->
+        <div class="section-title">
+            今天想吃什麼？
+            <a href=" ">換一換 ↻</a >
+        </div>
+        <div class="food-grid">
+            <div class="food-item active" onclick="toggleFood(this)"><span class="food-icon">🍲</span>火鍋</div>
+            <div class="food-item" onclick="toggleFood(this)"><span class="food-icon">🍣</span>日式</div>
+            <div class="food-item" onclick="toggleFood(this)"><span class="food-icon">🍖</span>韓式</div>
+            <div class="food-item" onclick="toggleFood(this)"><span class="food-icon">🍝</span>義式</div>
+            <div class="food-item" onclick="toggleFood(this)"><span class="food-icon">🍛</span>台式</div>
+            <div class="food-item" onclick="toggleFood(this)"><span class="food-icon">🍰</span>咖啡甜點</div>
+            <div class="food-item" onclick="toggleFood(this)"><span class="food-icon">🍺</span>其他</div>
+        </div>
 
-// Calculate Manhattan distance
-int distanceBetween(int i, int j) {
-    return abs(u[j] - x[i]) + abs(v[j] - y[i]);
-}
+        <!-- 推荐餐厅 -->
+        <div class="section-title">熱門餐廳推薦</div>
+        <div style="background: white; border-radius: 16px; padding: 12px; display: flex; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+            <div style="width: 80px; height: 80px; background: #eee; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 30px;">🍲</div>
+            <div style="display: flex; flex-direction: column; justify-content: center;">
+                <div style="font-weight: bold; margin-bottom: 4px;">小春日和 日式料理</div>
+                <div style="font-size: 12px; color: #f5a623;">⭐ 4.7 (1.2k)</div>
+                <div style="font-size: 12px; color: var(--text-gray); margin-top: 4px;">$300-500/人 · 1.2km</div>
+            </div>
+        </div>
+    </div>
 
+    <!-- 底部导航 -->
+    <div class="bottom-nav">
+        <div class="nav-item active"><span class="nav-icon">🏠</span>首頁</div>
+        <div class="nav-item"><span class="nav-icon">👥</span>好友</div>
+        <div class="nav-item"><span class="nav-icon">🎫</span>邀約</div>
+        <div class="nav-item"><span class="nav-icon">📍</span>地圖</div>
+        <div class="nav-item"><span class="nav-icon">👤</span>我的</div>
+    </div>
 
-// Read input
-void readData() {
+    <!-- 发起聚会弹窗 (对应图6) -->
+    <div class="modal-overlay" id="inviteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>發起聚會邀請</h2>
+                <div class="close-btn" onclick="closeModal()">×</div>
+            </div>
+            
+            <div class="form-group">
+                <label>聚會主題</label>
+                <input type="text" class="form-control" placeholder="例如：生日慶祝！一起吃大餐">
+            </div>
 
-    cin >> n >> m >> c >> s;
+            <div class="form-group">
+                <label>邀請方式</label>
+                <select class="form-control">
+                    <option>所有好友</option>
+                    <option>指定好友</option>
+                </select>
+            </div>
 
-    for (int j = 1; j <= n; j++)
-        cin >> u[j] >> v[j];
+            <div class="form-group">
+                <label>預計人數</label>
+                <select class="form-control">
+                    <option>5 - 8 人</option>
+                    <option>2 - 4 人</option>
+                </select>
+            </div>
 
-    for (int i = 1; i <= m; i++)
-        cin >> x[i] >> y[i];
+            <div class="form-group">
+                <label>付款方式</label>
+                <div class="tag-group">
+                    <div class="tag selected">AA 制</div>
+                    <div class="tag">我請客</div>
+                </div>
+            </div>
 
-    for (int i = 1; i <= m; i++)
-        cin >> D[i];
+            <div class="form-group">
+                <label>每人預算 (TWD)</label>
+                <div class="tag-group">
+                    <div class="tag">$200 以下</div>
+                    <div class="tag selected">$200 - 400</div>
+                    <div class="tag">$400 - 600</div>
+                </div>
+            </div>
 
-    for (int i = 1; i <= m; i++)
-        cin >> f[i];
+            <button class="submit-btn" onclick="submitForm()">發布邀約</button>
+        </div>
+    </div>
 
-    for (int i = 1; i <= m; i++)
-        cin >> p[i];
-
-    for (int j = 1; j <= n; j++)
-        cin >> h[j];
-
-    for (int j = 1; j <= n; j++)
-        cin >> K[j];
-}
-
-
-// Choose profitable stores
-void chooseStores() {
-
-    for (int i = 1; i <= m; i++) {
-
-        profit[i] = 1LL * p[i] * D[i] - f[i];
-
-        if (profit[i] > 0)
-            openStore[i] = 1;
-        else
-            openStore[i] = 0;
-    }
-}
-
-
-// Choose distribution centers
-void chooseCenters() {
-
-    long long totalDemand = 0;
-    long long totalCapacity = 0;
-
-    for (int j = 1; j <= n; j++) {
-
-        openCenter[j] = 0;
-        capacity[j] = K[j];
-    }
-
-    for (int i = 1; i <= m; i++) {
-
-        if (openStore[i])
-            totalDemand += D[i];
-    }
-
-    // Build centers in increasing order of cost
-    while (totalCapacity < totalDemand) {
-
-        int best = -1;
-
-        for (int j = 1; j <= n; j++) {
-
-            if (!openCenter[j]) {
-
-                if (best == -1 || h[j] < h[best])
-                    best = j;
-            }
+    <script>
+        // 控制弹窗
+        function openModal() {
+            document.getElementById('inviteModal').style.display = 'flex';
+        }
+        function closeModal() {
+            document.getElementById('inviteModal').style.display = 'none';
         }
 
-        if (best == -1)
-            break;
-
-        openCenter[best] = 1;
-
-        totalCapacity += K[best];
-    }
-
-    // Cancel stores with the lowest potential profit
-    // if total capacity is insufficient
-
-    while (totalCapacity < totalDemand) {
-
-        int worst = -1;
-
-        for (int i = 1; i <= m; i++) {
-
-            if (openStore[i]) {
-
-                if (worst == -1 ||
-                    profit[i] < profit[worst]) {
-
-                    worst = i;
-                }
-            }
+        // 点选料理效果
+        function toggleFood(element) {
+            element.classList.toggle('active');
         }
 
-        if (worst == -1)
-            break;
+        // 点选标签效果
+        document.querySelectorAll('.tag').forEach(tag => {
+            tag.addEventListener('click', function() {
+                // 找到同组标签并移除选中
+                let parent = this.parentNode;
+                parent.querySelectorAll('.tag').forEach(t => t.classList.remove('selected'));
+                // 给自己加上选中
+                this.classList.add('selected');
+            });
+        });
 
-        openStore[worst] = 0;
-
-        totalDemand -= D[worst];
-    }
-}
-
-
-// Distribute goods
-void distributeGoods() {
-
-    // Initialize supply
-    for (int i = 1; i <= m; i++) {
-
-        for (int j = 1; j <= n; j++) {
-
-            supply[i][j] = 0;
+        // 提交表单模拟
+        function submitForm() {
+            alert("🎉 邀約已發布！快去分享給好朋友吧！");
+            closeModal();
         }
-    }
-
-    // Process each store
-    for (int i = 1; i <= m; i++) {
-
-        if (!openStore[i])
-            continue;
-
-        // Single sourcing
-        if (s == 1) {
-
-            int best = -1;
-            int minDistance = 1000000;
-
-            // Find the nearest available center
-            for (int j = 1; j <= n; j++) {
-
-                if (!openCenter[j])
-                    continue;
-
-                if (capacity[j] <= 0)
-                    continue;
-
-                int d = distanceBetween(i, j);
-
-                // Only supply when profit per item is positive
-                if (p[i] - c * d <= 0)
-                    continue;
-
-                if (d < minDistance) {
-
-                    minDistance = d;
-                    best = j;
-                }
-            }
-
-            // Only one center can supply this store
-            if (best != -1) {
-
-                int amount = D[i];
-
-                if (amount > capacity[best])
-                    amount = capacity[best];
-
-                supply[i][best] = amount;
-
-                capacity[best] -= amount;
-            }
-        }
-
-        // Multiple sourcing
-        else if (s == 2) {
-
-            int need = D[i];
-
-            while (need > 0) {
-
-                int best = -1;
-                int minDistance = 1000000;
-
-                // Find the nearest available center
-                for (int j = 1; j <= n; j++) {
-
-                    if (!openCenter[j])
-                        continue;
-
-                    if (capacity[j] <= 0)
-                        continue;
-
-                    int d = distanceBetween(i, j);
-
-                    if (p[i] - c * d <= 0)
-                        continue;
-
-                    if (d < minDistance) {
-
-                        minDistance = d;
-                        best = j;
-                    }
-                }
-
-                if (best == -1)
-                    break;
-
-                int amount = need;
-
-                if (amount > capacity[best])
-                    amount = capacity[best];
-
-                supply[i][best] += amount;
-
-                capacity[best] -= amount;
-
-                need -= amount;
-            }
-        }
-
-        // Check whether the store is profitable
-        long long storeProfit = 0;
-
-        for (int j = 1; j <= n; j++) {
-
-            int d = distanceBetween(i, j);
-
-            storeProfit +=
-                1LL * (p[i] - c * d) * supply[i][j];
-        }
-
-        storeProfit -= f[i];
-
-        // Cancel unprofitable stores
-        if (storeProfit <= 0) {
-
-            for (int j = 1; j <= n; j++) {
-
-                capacity[j] += supply[i][j];
-
-                supply[i][j] = 0;
-            }
-
-            openStore[i] = 0;
-        }
-    }
-}
-
-
-// Calculate total net profit
-long long calculateProfit() {
-
-    long long totalProfit = 0;
-
-    for (int i = 1; i <= m; i++) {
-
-        if (!openStore[i])
-            continue;
-
-        totalProfit -= f[i];
-
-        for (int j = 1; j <= n; j++) {
-
-            int d = distanceBetween(i, j);
-
-            totalProfit +=
-                1LL * (p[i] - c * d) * supply[i][j];
-        }
-    }
-
-    // Only pay for centers that actually supply goods
-    for (int j = 1; j <= n; j++) {
-
-        bool used = false;
-
-        for (int i = 1; i <= m; i++) {
-
-            if (supply[i][j] > 0) {
-                used = true;
-                break;
-            }
-        }
-
-        if (used) {
-            totalProfit -= h[j];
-            openCenter[j] = 1;
-        }
-        else {
-            openCenter[j] = 0;
-        }
-    }
-
-    return totalProfit;
-}
-
-
-// Print answer
-void printAnswer() {
-
-    int centerCount = 0;
-
-    for (int j = 1; j <= n; j++) {
-
-        if (openCenter[j])
-            centerCount++;
-    }
-
-    cout << centerCount;
-
-    for (int j = 1; j <= n; j++) {
-
-        if (openCenter[j])
-            cout << " " << j;
-    }
-
-    cout << endl;
-
-
-    int storeCount = 0;
-
-    for (int i = 1; i <= m; i++) {
-
-        if (openStore[i])
-            storeCount++;
-    }
-
-    cout << storeCount;
-
-    for (int i = 1; i <= m; i++) {
-
-        if (openStore[i])
-            cout << " " << i;
-    }
-
-    cout << endl;
-
-
-    // Print m rows of supply quantities
-    for (int i = 1; i <= m; i++) {
-
-        for (int j = 1; j <= n; j++) {
-
-            if (j > 1)
-                cout << " ";
-
-            cout << supply[i][j];
-        }
-
-        cout << endl;
-    }
-}
-
-
-// Main function
-int main() {
-
-    readData();
-
-    chooseStores();
-
-    chooseCenters();
-
-    distributeGoods();
-
-    long long totalProfit = calculateProfit();
-
-    // If the solution is not profitable,
-    // output an empty feasible solution
-    if (totalProfit <= 0) {
-
-        for (int j = 1; j <= n; j++)
-            openCenter[j] = 0;
-
-        for (int i = 1; i <= m; i++) {
-
-            openStore[i] = 0;
-
-            for (int j = 1; j <= n; j++)
-                supply[i][j] = 0;
-        }
-    }
-
-    printAnswer();
-
-    return 0;
-}
+    </script>
+</body>
+</html>

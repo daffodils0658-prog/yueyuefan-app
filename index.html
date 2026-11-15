@@ -1,0 +1,417 @@
+
+#include <iostream>
+#include <cstdlib>
+using namespace std;
+
+const int MAXN = 55;
+const int MAXM = 1005;
+
+int n, m, c, s;
+
+int u[MAXN], v[MAXN];
+int x[MAXM], y[MAXM];
+
+int D[MAXM], f[MAXM], p[MAXM];
+int h[MAXN], K[MAXN];
+
+int capacity[MAXN];
+
+int openCenter[MAXN];
+int openStore[MAXM];
+
+int supply[MAXM][MAXN];
+
+long long profit[MAXM];
+
+
+// Calculate Manhattan distance
+int distanceBetween(int i, int j) {
+    return abs(u[j] - x[i]) + abs(v[j] - y[i]);
+}
+
+
+// Read input
+void readData() {
+
+    cin >> n >> m >> c >> s;
+
+    for (int j = 1; j <= n; j++)
+        cin >> u[j] >> v[j];
+
+    for (int i = 1; i <= m; i++)
+        cin >> x[i] >> y[i];
+
+    for (int i = 1; i <= m; i++)
+        cin >> D[i];
+
+    for (int i = 1; i <= m; i++)
+        cin >> f[i];
+
+    for (int i = 1; i <= m; i++)
+        cin >> p[i];
+
+    for (int j = 1; j <= n; j++)
+        cin >> h[j];
+
+    for (int j = 1; j <= n; j++)
+        cin >> K[j];
+}
+
+
+// Choose profitable stores
+void chooseStores() {
+
+    for (int i = 1; i <= m; i++) {
+
+        profit[i] = 1LL * p[i] * D[i] - f[i];
+
+        if (profit[i] > 0)
+            openStore[i] = 1;
+        else
+            openStore[i] = 0;
+    }
+}
+
+
+// Choose distribution centers
+void chooseCenters() {
+
+    long long totalDemand = 0;
+    long long totalCapacity = 0;
+
+    for (int j = 1; j <= n; j++) {
+
+        openCenter[j] = 0;
+        capacity[j] = K[j];
+    }
+
+    for (int i = 1; i <= m; i++) {
+
+        if (openStore[i])
+            totalDemand += D[i];
+    }
+
+    // Build centers in increasing order of cost
+    while (totalCapacity < totalDemand) {
+
+        int best = -1;
+
+        for (int j = 1; j <= n; j++) {
+
+            if (!openCenter[j]) {
+
+                if (best == -1 || h[j] < h[best])
+                    best = j;
+            }
+        }
+
+        if (best == -1)
+            break;
+
+        openCenter[best] = 1;
+
+        totalCapacity += K[best];
+    }
+
+    // Cancel stores with the lowest potential profit
+    // if total capacity is insufficient
+
+    while (totalCapacity < totalDemand) {
+
+        int worst = -1;
+
+        for (int i = 1; i <= m; i++) {
+
+            if (openStore[i]) {
+
+                if (worst == -1 ||
+                    profit[i] < profit[worst]) {
+
+                    worst = i;
+                }
+            }
+        }
+
+        if (worst == -1)
+            break;
+
+        openStore[worst] = 0;
+
+        totalDemand -= D[worst];
+    }
+}
+
+
+// Distribute goods
+void distributeGoods() {
+
+    // Initialize supply
+    for (int i = 1; i <= m; i++) {
+
+        for (int j = 1; j <= n; j++) {
+
+            supply[i][j] = 0;
+        }
+    }
+
+    // Process each store
+    for (int i = 1; i <= m; i++) {
+
+        if (!openStore[i])
+            continue;
+
+        // Single sourcing
+        if (s == 1) {
+
+            int best = -1;
+            int minDistance = 1000000;
+
+            // Find the nearest available center
+            for (int j = 1; j <= n; j++) {
+
+                if (!openCenter[j])
+                    continue;
+
+                if (capacity[j] <= 0)
+                    continue;
+
+                int d = distanceBetween(i, j);
+
+                // Only supply when profit per item is positive
+                if (p[i] - c * d <= 0)
+                    continue;
+
+                if (d < minDistance) {
+
+                    minDistance = d;
+                    best = j;
+                }
+            }
+
+            // Only one center can supply this store
+            if (best != -1) {
+
+                int amount = D[i];
+
+                if (amount > capacity[best])
+                    amount = capacity[best];
+
+                supply[i][best] = amount;
+
+                capacity[best] -= amount;
+            }
+        }
+
+        // Multiple sourcing
+        else if (s == 2) {
+
+            int need = D[i];
+
+            while (need > 0) {
+
+                int best = -1;
+                int minDistance = 1000000;
+
+                // Find the nearest available center
+                for (int j = 1; j <= n; j++) {
+
+                    if (!openCenter[j])
+                        continue;
+
+                    if (capacity[j] <= 0)
+                        continue;
+
+                    int d = distanceBetween(i, j);
+
+                    if (p[i] - c * d <= 0)
+                        continue;
+
+                    if (d < minDistance) {
+
+                        minDistance = d;
+                        best = j;
+                    }
+                }
+
+                if (best == -1)
+                    break;
+
+                int amount = need;
+
+                if (amount > capacity[best])
+                    amount = capacity[best];
+
+                supply[i][best] += amount;
+
+                capacity[best] -= amount;
+
+                need -= amount;
+            }
+        }
+
+        // Check whether the store is profitable
+        long long storeProfit = 0;
+
+        for (int j = 1; j <= n; j++) {
+
+            int d = distanceBetween(i, j);
+
+            storeProfit +=
+                1LL * (p[i] - c * d) * supply[i][j];
+        }
+
+        storeProfit -= f[i];
+
+        // Cancel unprofitable stores
+        if (storeProfit <= 0) {
+
+            for (int j = 1; j <= n; j++) {
+
+                capacity[j] += supply[i][j];
+
+                supply[i][j] = 0;
+            }
+
+            openStore[i] = 0;
+        }
+    }
+}
+
+
+// Calculate total net profit
+long long calculateProfit() {
+
+    long long totalProfit = 0;
+
+    for (int i = 1; i <= m; i++) {
+
+        if (!openStore[i])
+            continue;
+
+        totalProfit -= f[i];
+
+        for (int j = 1; j <= n; j++) {
+
+            int d = distanceBetween(i, j);
+
+            totalProfit +=
+                1LL * (p[i] - c * d) * supply[i][j];
+        }
+    }
+
+    // Only pay for centers that actually supply goods
+    for (int j = 1; j <= n; j++) {
+
+        bool used = false;
+
+        for (int i = 1; i <= m; i++) {
+
+            if (supply[i][j] > 0) {
+                used = true;
+                break;
+            }
+        }
+
+        if (used) {
+            totalProfit -= h[j];
+            openCenter[j] = 1;
+        }
+        else {
+            openCenter[j] = 0;
+        }
+    }
+
+    return totalProfit;
+}
+
+
+// Print answer
+void printAnswer() {
+
+    int centerCount = 0;
+
+    for (int j = 1; j <= n; j++) {
+
+        if (openCenter[j])
+            centerCount++;
+    }
+
+    cout << centerCount;
+
+    for (int j = 1; j <= n; j++) {
+
+        if (openCenter[j])
+            cout << " " << j;
+    }
+
+    cout << endl;
+
+
+    int storeCount = 0;
+
+    for (int i = 1; i <= m; i++) {
+
+        if (openStore[i])
+            storeCount++;
+    }
+
+    cout << storeCount;
+
+    for (int i = 1; i <= m; i++) {
+
+        if (openStore[i])
+            cout << " " << i;
+    }
+
+    cout << endl;
+
+
+    // Print m rows of supply quantities
+    for (int i = 1; i <= m; i++) {
+
+        for (int j = 1; j <= n; j++) {
+
+            if (j > 1)
+                cout << " ";
+
+            cout << supply[i][j];
+        }
+
+        cout << endl;
+    }
+}
+
+
+// Main function
+int main() {
+
+    readData();
+
+    chooseStores();
+
+    chooseCenters();
+
+    distributeGoods();
+
+    long long totalProfit = calculateProfit();
+
+    // If the solution is not profitable,
+    // output an empty feasible solution
+    if (totalProfit <= 0) {
+
+        for (int j = 1; j <= n; j++)
+            openCenter[j] = 0;
+
+        for (int i = 1; i <= m; i++) {
+
+            openStore[i] = 0;
+
+            for (int j = 1; j <= n; j++)
+                supply[i][j] = 0;
+        }
+    }
+
+    printAnswer();
+
+    return 0;
+}

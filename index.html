@@ -3,136 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>飯飯約 - 完整版</title>
-    <style>
-        :root {
-            --primary-pink: #F78296;
-            --light-pink: #FFF0F3;
-            --bg-color: #FCF9F5;
-            --text-dark: #333333;
-            --text-gray: #888888;
-            --green: #4CAF50;
-            --shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-dark); max-width: 480px; margin: 0 auto; position: relative; overflow-x: hidden; height: 100vh; }
-        
-        .page { display: none; height: 100%; overflow-y: auto; padding-bottom: 80px; }
-        .page.active { display: block; animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .header { padding: 20px; display: flex; justify-content: space-between; align-items: center; background: white; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
-        .logo { font-size: 20px; font-weight: bold; color: var(--primary-pink); display: flex; align-items: center; gap: 8px;}
-        .back-btn { font-size: 20px; cursor: pointer; color: var(--text-dark); margin-right: 10px; }
-        
-        .container { padding: 20px; }
-
-        .btn-primary { width: 100%; background: var(--primary-pink); color: white; border: none; padding: 16px; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: var(--shadow); display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s;}
-        .btn-primary:active { transform: scale(0.98); }
-        .btn-outline { width: 100%; background: white; color: var(--primary-pink); border: 1px solid var(--primary-pink); padding: 16px; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px;}
-
-        .hero-section { display: flex; gap: 10px; margin-bottom: 24px; }
-        .hero-btn { flex: 1; padding: 20px 10px; border-radius: 16px; text-align: center; color: white; font-weight: bold; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
-        .btn-pink { background: linear-gradient(135deg, #FFA1B2, #F78296); box-shadow: 0 8px 15px rgba(247, 130, 150, 0.3); }
-        .btn-purple { background: linear-gradient(135deg, #E2D4F8, #C9AEF0); box-shadow: 0 8px 15px rgba(201, 174, 240, 0.3); }
-
-        .banner { background: #FFEBEF; border-radius: 16px; padding: 16px; margin-bottom: 20px; position: relative;}
-        .banner h2 { font-size: 18px; margin-bottom: 4px; color: var(--text-dark);}
-        .banner p { color: var(--text-gray); font-size: 12px;}
-        .friend-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
-        .friend-card { display: flex; align-items: center; background: white; padding: 12px; border-radius: 16px; box-shadow: var(--shadow); cursor: pointer; border: 1px solid transparent; transition: 0.2s;}
-        .friend-card.selected { border-color: var(--primary-pink); background: var(--light-pink); }
-        .friend-checkbox { width: 24px; height: 24px; border-radius: 6px; border: 2px solid #ddd; margin-right: 12px; display: flex; justify-content: center; align-items: center; color: white; font-size: 14px; }
-        .friend-card.selected .friend-checkbox { background: var(--primary-pink); border-color: var(--primary-pink); }
-        .friend-avatar { width: 40px; height: 40px; border-radius: 50%; background: #eee; margin-right: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;}
-        .friend-info { flex: 1; }
-        .friend-name { font-weight: bold; font-size: 15px; display: flex; align-items: center; gap: 6px;}
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-        .dot-green { background: var(--green); }
-        .friend-desc { font-size: 12px; color: var(--text-gray); margin-top: 2px;}
-        .friend-tag { font-size: 11px; background: white; color: var(--primary-pink); padding: 4px 8px; border-radius: 10px; border: 1px solid var(--light-pink);}
-
-        .condition-card { background: white; padding: 16px; border-radius: 16px; box-shadow: var(--shadow); margin-bottom: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;}
-        .condition-title { font-size: 15px; font-weight: bold; display: flex; align-items: center; gap: 8px;}
-        .condition-value { font-size: 13px; color: var(--primary-pink); background: var(--light-pink); padding: 4px 10px; border-radius: 12px;}
-        .tag-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;}
-        .tag { padding: 8px 16px; border-radius: 20px; background: #f0f0f0; font-size: 13px; cursor: pointer; border: 1px solid transparent;}
-        .tag.active { background: var(--light-pink); color: var(--primary-pink); border-color: var(--primary-pink); font-weight: bold;}
-
-        .res-card { background: white; border-radius: 16px; overflow: hidden; margin-bottom: 16px; box-shadow: var(--shadow); }
-        .res-img { height: 120px; background: #eee; display: flex; justify-content: center; align-items: center; font-size: 40px; position: relative;}
-        .res-tag { position: absolute; top: 10px; left: 10px; background: #FFC107; color: white; font-size: 11px; padding: 4px 8px; border-radius: 10px; font-weight: bold;}
-        .res-info { padding: 16px; }
-        .res-title { font-size: 16px; font-weight: bold; margin-bottom: 6px; display: flex; justify-content: space-between;}
-        .res-desc { font-size: 12px; color: var(--text-gray); margin-bottom: 8px;}
-        .res-rating { color: #FF9800; font-size: 13px; font-weight: bold;}
-
-        .success-icon { text-align: center; font-size: 60px; margin: 20px 0; animation: bounce 1s infinite alternate;}
-        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-10px); } }
-        .detail-box { background: white; padding: 20px; border-radius: 16px; box-shadow: var(--shadow); margin-bottom: 20px; }
-        .detail-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; border-bottom: 1px dashed #eee; padding-bottom: 8px;}
-        .detail-row:last-child { border-bottom: none; margin-bottom: 0;}
-        .detail-label { color: var(--text-gray); }
-
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; background: white; display: flex; justify-content: space-around; padding: 12px 0 20px 0; border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -4px 12px rgba(0,0,0,0.05); z-index: 100; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--text-gray); cursor: pointer; }
-        .nav-item.active { color: var(--primary-pink); }
-        .nav-icon { font-size: 20px; margin-bottom: 4px; }
-        .nav-add { background: var(--primary-pink); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; margin-top: -20px; box-shadow: 0 4px 10px rgba(247, 130, 150, 0.4);}
-    </style>
+    <title>飯飯約 - 專業版</title>
+    <!-- 引入 CSS 樣式檔 -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+    <!-- 頁面 1：首頁 -->
     <div id="page-home" class="page active">
         <div class="header">
             <div class="logo">🍙 飯飯約</div>
-            <div style="font-size:20px; color:#ccc;">🔔</div>
+            <div class="bell-icon">🔔</div>
         </div>
         <div class="container">
             <div class="hero-section">
                 <div class="hero-btn btn-pink" onclick="goToPage('page-invite')">
-                    <span style="font-size: 28px;">⚡</span> 隨時約飯
+                    <span class="hero-icon">⚡</span>
+                    <div class="hero-title">隨時約飯</div>
+                    <div class="hero-desc">快速找到一起吃飯的飯友</div>
                 </div>
                 <div class="hero-btn btn-purple" onclick="goToPage('page-invite')">
-                    <span style="font-size: 28px;">✨</span> 發起聚會
+                    <span class="hero-icon">✨</span>
+                    <div class="hero-title">發起聚會</div>
+                    <div class="hero-desc">邀請好友，投票決定吃哪裡</div>
                 </div>
             </div>
-            <h3 style="margin-bottom: 12px; font-size: 16px;">今天想吃什麼？</h3>
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
-                <div style="background: white; padding: 10px; border-radius: 12px; text-align: center; font-size: 12px; box-shadow: var(--shadow);"><span style="font-size: 24px;">🍲</span><br>火鍋</div>
-                <div style="background: white; padding: 10px; border-radius: 12px; text-align: center; font-size: 12px; box-shadow: var(--shadow);"><span style="font-size: 24px;">🍣</span><br>日式</div>
-                <div style="background: white; padding: 10px; border-radius: 12px; text-align: center; font-size: 12px; box-shadow: var(--shadow);"><span style="font-size: 24px;">🍖</span><br>韓式</div>
-                <div style="background: white; padding: 10px; border-radius: 12px; text-align: center; font-size: 12px; box-shadow: var(--shadow);"><span style="font-size: 24px;">🍝</span><br>義式</div>
+            
+            <div class="section-title">今天想吃什麼？ <span>換一換 ↻</span></div>
+            <div class="food-grid">
+                <div class="food-item active"><span class="food-icon">🍲</span>火鍋</div>
+                <div class="food-item"><span class="food-icon">🍣</span>日式</div>
+                <div class="food-item"><span class="food-icon">🍖</span>韓式</div>
+                <div class="food-item"><span class="food-icon">🍝</span>義式</div>
+                <div class="food-item"><span class="food-icon">🍛</span>台式</div>
+                <div class="food-item"><span class="food-icon">🍰</span>甜點</div>
             </div>
         </div>
         <div class="bottom-nav">
-            <div class="nav-item active"><span class="nav-icon">🏠</span>首頁</div>
-            <div class="nav-item"><span class="nav-icon">👥</span>好友</div>
+            <div class="nav-item active"><span>🏠</span>首頁</div>
+            <div class="nav-item"><span>👥</span>好友</div>
             <div class="nav-add" onclick="goToPage('page-invite')">+</div>
-            <div class="nav-item"><span class="nav-icon">🎫</span>邀約</div>
-            <div class="nav-item"><span class="nav-icon">👤</span>我的</div>
+            <div class="nav-item"><span>🎫</span>邀約</div>
+            <div class="nav-item"><span>👤</span>我的</div>
         </div>
     </div>
 
+    <!-- 頁面 2：選擇好友 -->
     <div id="page-invite" class="page">
         <div class="header">
-            <div style="display: flex; align-items: center;">
+            <div class="header-left">
                 <div class="back-btn" onclick="goToPage('page-home')">❮</div>
                 <div class="logo">選擇好友</div>
             </div>
-            <div style="font-size:20px;">🔔</div>
         </div>
         <div class="container">
             <div class="banner">
+                <span class="step-tag">步驟 1/5</span>
                 <h2>選擇要邀請的好友</h2>
                 <p>只會顯示願意被邀請的好友</p >
             </div>
+            
+            <div class="filter-bar">
+                <div class="filter-btn active">所有好友 (8)</div>
+                <div class="filter-btn dot-green">願意被邀請 (6)</div>
+                <div class="filter-btn dot-gray">免打擾中 (2)</div>
+            </div>
+
             <div class="friend-list">
                 <div class="friend-card selected" onclick="toggleFriend(this)">
                     <div class="friend-checkbox">✓</div>
                     <div class="friend-avatar">👧</div>
                     <div class="friend-info">
-                        <div class="friend-name">小安 <span class="status-dot dot-green"></span></div>
+                        <div class="friend-name">小安 <span class="status-dot green"></span></div>
                         <div class="friend-desc">願意被邀請 · 在線上</div>
                     </div>
                     <div class="friend-tag">超愛吃火鍋！</div>
@@ -141,7 +83,7 @@
                     <div class="friend-checkbox">✓</div>
                     <div class="friend-avatar">👦</div>
                     <div class="friend-info">
-                        <div class="friend-name">阿哲 <span class="status-dot dot-green"></span></div>
+                        <div class="friend-name">阿哲 <span class="status-dot green"></span></div>
                         <div class="friend-desc">願意被邀請 · 在線上</div>
                     </div>
                     <div class="friend-tag">今天也想吃飯！</div>
@@ -150,37 +92,47 @@
                     <div class="friend-checkbox"></div>
                     <div class="friend-avatar">👩</div>
                     <div class="friend-info">
-                        <div class="friend-name">小晴 <span class="status-dot dot-green"></span></div>
-                        <div class="friend-desc">願意被邀請 · 2 小時前在線</div>
+                        <div class="friend-name">小晴 <span class="status-dot green"></span></div>
+                        <div class="friend-desc">願意被邀請 · 2小時前</div>
                     </div>
-                    <div class="friend-tag">喜歡日式</div>
+                    <div class="friend-tag">喜歡日式料理</div>
+                </div>
+                <div class="friend-card disabled" onclick="alert('該好友設定為免打擾喔！')">
+                    <div class="friend-checkbox"></div>
+                    <div class="friend-avatar">👦</div>
+                    <div class="friend-info">
+                        <div class="friend-name">阿明 <span class="status-dot gray"></span></div>
+                        <div class="friend-desc">免打擾中 · 離線</div>
+                    </div>
+                    <div class="friend-tag">最近比較忙～</div>
                 </div>
             </div>
-            <button class="btn-primary" onclick="goToPage('page-condition')">下一步，設定條件 ❯</button>
+            <button class="btn-primary" onclick="goToPage('page-condition')">✨ 下一步，設定條件 ❯</button>
         </div>
     </div>
 
+    <!-- 頁面 3：設定條件 -->
     <div id="page-condition" class="page">
         <div class="header">
-            <div style="display: flex; align-items: center;">
+            <div class="header-left">
                 <div class="back-btn" onclick="goToPage('page-invite')">❮</div>
                 <div class="logo">設定條件</div>
             </div>
         </div>
         <div class="container">
-            <h2 style="margin-bottom: 20px; font-size: 20px;">一起吃飯吧！</h2>
-            <p style="color: var(--text-gray); font-size: 13px; margin-bottom: 20px;">讓大家選出最適合的時間和餐廳</p >
+            <h2 class="page-title">一起吃飯吧！</h2>
+            <p class="page-subtitle">讓大家選出最適合的時間和餐廳</p >
             
             <div class="condition-card">
-                <div class="condition-title">⏰ 時間 (可多選)</div>
-                <div class="condition-value">已選 18:00</div>
+                <div class="condition-title">⏰ 時間 (已選 3 個)</div>
+                <div class="condition-value">18:00, 19:00</div>
             </div>
             <div class="condition-card">
                 <div class="condition-title">💰 預算 (每人)</div>
                 <div class="condition-value">$200 - $400</div>
             </div>
-            <div style="margin-bottom: 24px;">
-                <div class="condition-title" style="margin-bottom: 10px;">🍴 口味 (可多選)</div>
+            <div class="condition-section">
+                <div class="condition-title">🍴 口味 (可多選)</div>
                 <div class="tag-group">
                     <div class="tag active">🍲 火鍋</div>
                     <div class="tag active">🍣 日式</div>
@@ -193,101 +145,54 @@
         </div>
     </div>
 
+    <!-- 頁面 4：推薦餐廳 -->
     <div id="page-result" class="page">
         <div class="header">
-            <div style="display: flex; align-items: center;">
+            <div class="header-left">
                 <div class="back-btn" onclick="goToPage('page-condition')">❮</div>
                 <div class="logo">推薦餐廳</div>
             </div>
         </div>
         <div class="container">
-            <h3 style="margin-bottom: 16px;">為你們找到 3 家餐廳</h3>
-            
+            <h3 class="page-title">為你們找到 3 家餐廳</h3>
             <div class="res-card" onclick="goToPage('page-success')">
-                <div class="res-img" style="background: #FFE0E5;">🍲<div class="res-tag">最推薦</div></div>
+                <div class="res-img bg-pink">🍲<div class="res-badge">最推薦</div></div>
                 <div class="res-info">
                     <div class="res-title">好食光火鍋 <span class="res-rating">⭐ 4.8</span></div>
                     <div class="res-desc">火鍋 · $300-450/人 · 1.1km</div>
-                    <div style="font-size: 12px; color: var(--text-gray);">食材新鮮，環境舒適，適合朋友聚餐。</div>
                 </div>
             </div>
-
             <div class="res-card" onclick="goToPage('page-success')">
-                <div class="res-img" style="background: #E8F5E9;">🍣</div>
+                <div class="res-img bg-green">🍣</div>
                 <div class="res-info">
                     <div class="res-title">日和食堂 <span class="res-rating">⭐ 4.6</span></div>
                     <div class="res-desc">日式 · $250-400/人 · 1.5km</div>
-                    <div style="font-size: 12px; color: var(--text-gray);">並肩吧台，溫馨日式氛圍，適合小聚。</div>
-                </div>
-            </div>
-
-            <div class="res-card" onclick="goToPage('page-success')">
-                <div class="res-img" style="background: #FFF3E0;">🍲</div>
-                <div class="res-info">
-                    <div class="res-title">暖心鍋物 <span class="res-rating">⭐ 4.7</span></div>
-                    <div class="res-desc">火鍋 · $300-500/人 · 2.1km</div>
-                    <div style="font-size: 12px; color: var(--text-gray);">多種鍋底選擇，CP值高。</div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- 頁面 5：最終確認 -->
     <div id="page-success" class="page">
-        <div class="header">
-            <div class="logo" style="margin: 0 auto;">聚會已確定！</div>
-        </div>
+        <div class="header"><div class="logo center-logo">聚餐已確定！</div></div>
         <div class="container">
             <div class="success-icon">🎉</div>
-            <h2 style="text-align: center; margin-bottom: 8px;">我們要去吃飯啦！</h2>
-            <p style="text-align: center; color: var(--text-gray); font-size: 14px; margin-bottom: 24px;">感謝大家的參與～期待見面！</p >
+            <h2 class="center-text">我們要去吃飯啦！</h2>
+            <p class="center-text sub">感謝大家的參與～期待見面！</p >
 
             <div class="detail-box">
-                <h3 style="margin-bottom: 16px; border-left: 4px solid var(--primary-pink); padding-left: 8px;">聚會資訊</h3>
-                <div class="detail-row"><span class="detail-label">日期時間</span> <span>2026/10/25 (六) 18:00</span></div>
-                <div class="detail-row"><span class="detail-label">人數</span> <span>3 人 (已確認)</span></div>
-                <div class="detail-row"><span class="detail-label">付款方式</span> <span>AA 制</span></div>
-                <div class="detail-row"><span class="detail-label">每人預算</span> <span>$300 - $450 (TWD)</span></div>
-                <div class="detail-row"><span class="detail-label">餐廳</span> <span style="color: var(--primary-pink); font-weight: bold;">好食光火鍋</span></div>
+                <h3>聚會資訊</h3>
+                <div class="detail-row"><span>日期時間</span> <span>2026/10/25 (六) 18:00</span></div>
+                <div class="detail-row"><span>人數</span> <span>3 人 (已確認)</span></div>
+                <div class="detail-row"><span>餐廳</span> <span class="text-pink">好食光火鍋</span></div>
             </div>
 
-            <div style="background: white; border-radius: 16px; padding: 16px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <div>
-                    <div style="font-weight: bold; margin-bottom: 4px;">📍 Google Maps 導航</div>
-                    <div style="font-size: 12px; color: var(--text-gray);">點擊立即前往餐廳</div>
-                </div>
-                <button style="background: #E8F5E9; color: var(--green); border: none; padding: 10px 16px; border-radius: 20px; font-weight: bold; cursor: pointer;" onclick="openMap()">開啟地圖 ❯</button>
-            </div>
-
-            <button class="btn-outline" onclick="alert('已加入行事曆！')">📅 加入行事曆</button>
-            <button class="btn-primary" style="margin-top: 10px;" onclick="goToPage('page-home')">回首頁</button>
+            <button class="btn-primary" onclick="openMap()">📍 開啟 Google 地圖導航</button>
+            <button class="btn-outline" style="margin-top:10px;" onclick="goToPage('page-home')">回首頁</button>
         </div>
     </div>
-        <script>
-        function goToPage(pageId) {
-            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            window.scrollTo(0, 0);
-        }
 
-        function toggleFriend(element) {
-            element.classList.toggle('selected');
-            const checkbox = element.querySelector('.friend-checkbox');
-            if (element.classList.contains('selected')) {
-                checkbox.innerHTML = '✓';
-            } else {
-                checkbox.innerHTML = '';
-            }
-        }
-
-        document.querySelectorAll('.tag').forEach(tag => {
-            tag.addEventListener('click', function() {
-                this.classList.toggle('active');
-            });
-        });
-
-        function openMap() {
-            window.open('https://www.google.com/maps/search/?api=1&query=台北市大安區溫州街', '_blank');
-        }
-    </script>
+    <!-- 引入 JS 邏輯檔 -->
+    <script src="app.js"></script>
 </body>
 </html>

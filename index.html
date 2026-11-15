@@ -3,196 +3,440 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>飯飯約 - 專業版</title>
-    <!-- 引入 CSS 樣式檔 -->
-    <link rel="stylesheet" href="style.css">
+    <title>飯飯約 - 旗艦版</title>
+    <style>
+        :root {
+            --primary: #F78296;
+            --primary-light: #FFF0F3;
+            --bg: #F8F9FA;
+            --text: #333333;
+            --gray: #888888;
+            --success: #4CAF50;
+            --warning: #FF9800;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+            --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
+            --radius: 16px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent;}
+        body { background: var(--bg); color: var(--text); max-width: 480px; margin: 0 auto; height: 100vh; overflow: hidden; position: relative; }
+        
+        .page { display: none; height: 100%; overflow-y: auto; padding-bottom: 90px; }
+        .page.active { display: block; animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+        .header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; background: white; position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 0 rgba(0,0,0,0.05); }
+        .logo { font-size: 20px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 6px; letter-spacing: 1px;}
+        .back-btn { font-size: 22px; cursor: pointer; color: var(--text); padding-right: 15px; }
+        .header-title { font-size: 18px; font-weight: bold; flex: 1; }
+        .container { padding: 20px; }
+
+        .btn { width: 100%; border: none; padding: 16px; border-radius: 99px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px;}
+        .btn:active { transform: scale(0.97); }
+        .btn-primary { background: linear-gradient(135deg, #FF9EB5, #F78296); color: white; box-shadow: 0 6px 16px rgba(247, 130, 150, 0.3); }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+
+        .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+        .hero-card { padding: 20px 15px; border-radius: var(--radius); color: white; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; justify-content: center; }
+        .hero-card:active { transform: scale(0.96); }
+        .hero-card.now { background: linear-gradient(135deg, #FFB199, #FF0844); box-shadow: 0 8px 20px rgba(255,8,68,0.2); }
+        .hero-card.later { background: linear-gradient(135deg, #B4C6FF, #7F94FF); box-shadow: 0 8px 20px rgba(127,148,255,0.2); }
+        .hero-card h3 { font-size: 18px; margin-bottom: 6px; font-weight: 800; }
+        .hero-card p { font-size: 12px; opacity: 0.9; line-height: 1.4; }
+        .hero-icon { font-size: 28px; margin-bottom: 12px; }
+
+        .card { background: white; border-radius: var(--radius); padding: 18px; margin-bottom: 14px; box-shadow: var(--shadow-sm); border: 1px solid rgba(0,0,0,0.02); }
+        
+        .form-group { margin-bottom: 22px; }
+        .form-label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 10px; color: #444; }
+        .form-control { width: 100%; padding: 14px; border: 1.5px solid #eee; border-radius: 12px; font-size: 15px; outline: none; transition: 0.2s; background: white;}
+        .form-control:focus { border-color: var(--primary); }
+        .tag-group { display: flex; flex-wrap: wrap; gap: 10px; }
+        .tag { padding: 10px 18px; border-radius: 99px; background: #F0F0F0; font-size: 14px; cursor: pointer; border: 1.5px solid transparent; transition: 0.2s; font-weight: 500;}
+        .tag.active { background: var(--primary-light); color: var(--primary); border-color: var(--primary); font-weight: bold;}
+
+        .friend-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f5f5f5; }
+        .friend-item:last-child { border-bottom: none; }
+        .avatar { width: 44px; height: 44px; border-radius: 50%; background: #F0F0F0; display: flex; justify-content: center; align-items: center; font-size: 22px; }
+        .friend-info h4 { font-size: 16px; font-weight: bold; margin-bottom: 2px; }
+        .friend-info p { font-size: 12px; color: var(--gray); }
+        .status-badge { font-size: 11px; padding: 2px 8px; border-radius: 99px; margin-left: 8px; }
+        .status-online { background: #E8F5E9; color: var(--success); }
+        .status-busy { background: #F5F5F5; color: var(--gray); }
+
+        .progress-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; position: relative; }
+        .progress-bar::before { content: ''; position: absolute; top: 12px; left: 0; right: 0; height: 3px; background: #eee; z-index: 1; }
+        .progress-step { width: 24px; height: 24px; border-radius: 50%; background: #eee; z-index: 2; display: flex; justify-content: center; align-items: center; font-size: 12px; color: #999; font-weight: bold; }
+        .progress-step.active { background: var(--primary); color: white; box-shadow: 0 0 0 4px var(--primary-light); }
+        
+        .vote-status { font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 4px; }
+        .vote-yes { color: var(--success); }
+        .vote-wait { color: var(--warning); }
+
+        .res-card { display: flex; gap: 15px; background: white; padding: 15px; border-radius: var(--radius); margin-bottom: 12px; border: 2px solid transparent; cursor: pointer; transition: 0.2s;}
+        .res-card.selected { border-color: var(--primary); background: var(--primary-light); }
+        .res-img { width: 80px; height: 80px; border-radius: 12px; background: #eee; display: flex; justify-content: center; align-items: center; font-size: 32px; }
+        .res-info { flex: 1; display: flex; flex-direction: column; justify-content: center;}
+        .res-info h4 { font-size: 16px; font-weight: bold; margin-bottom: 4px; }
+        .res-info p { font-size: 12px; color: var(--gray); margin-bottom: 6px;}
+        .res-tag { display: inline-block; background: #FFF3E0; color: #FF9800; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); display: flex; justify-content: space-around; padding: 10px 0 25px 0; border-top-left-radius: 24px; border-top-right-radius: 24px; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 11px; color: var(--gray); cursor: pointer; gap: 4px; font-weight: 500;}
+        .nav-item.active { color: var(--primary); font-weight: bold; }
+        .nav-icon { font-size: 22px; margin-bottom: 2px;}
+        .nav-add { background: linear-gradient(135deg, #FF9EB5, #F78296); color: white; width: 56px; height: 56px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 28px; margin-top: -30px; box-shadow: 0 6px 16px rgba(247, 130, 150, 0.4); cursor: pointer; }
+
+        .toast { position: fixed; top: 10%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 12px 24px; border-radius: 99px; font-size: 14px; z-index: 9999; display: none; backdrop-filter: blur(5px); text-align: center; white-space: nowrap; animation: dropDown 0.3s;}
+        @keyframes dropDown { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+        .empty-state { text-align: center; padding: 40px 20px; color: #aaa; font-size: 14px; }
+    </style>
 </head>
 <body>
 
-    <!-- 頁面 1：首頁 -->
+    <!-- 首頁 -->
     <div id="page-home" class="page active">
-        <div class="header">
-            <div class="logo">🍙 飯飯約</div>
-            <div class="bell-icon">🔔</div>
-        </div>
+        <div class="header"><div class="logo">🍙 飯飯約</div></div>
         <div class="container">
-            <div class="hero-section">
-                <div class="hero-btn btn-pink" onclick="goToPage('page-invite')">
+            <div class="hero-grid">
+                <div class="hero-card now" onclick="openInviteForm('now')">
                     <span class="hero-icon">⚡</span>
-                    <div class="hero-title">隨時約飯</div>
-                    <div class="hero-desc">快速找到一起吃飯的飯友</div>
+                    <h3>隨時約飯</h3>
+                    <p>今晚立刻吃<br>快速找到飯友</p >
                 </div>
-                <div class="hero-btn btn-purple" onclick="goToPage('page-invite')">
-                    <span class="hero-icon">✨</span>
-                    <div class="hero-title">發起聚會</div>
-                    <div class="hero-desc">邀請好友，投票決定吃哪裡</div>
+                <div class="hero-card later" onclick="openInviteForm('later')">
+                    <span class="hero-icon">📅</span>
+                    <h3>發起聚會</h3>
+                    <p>提前規劃揪團<br>投票決定餐廳</p >
                 </div>
             </div>
-            
-            <div class="section-title">今天想吃什麼？ <span>換一換 ↻</span></div>
-            <div class="food-grid">
-                <div class="food-item active"><span class="food-icon">🍲</span>火鍋</div>
-                <div class="food-item"><span class="food-icon">🍣</span>日式</div>
-                <div class="food-item"><span class="food-icon">🍖</span>韓式</div>
-                <div class="food-item"><span class="food-icon">🍝</span>義式</div>
-                <div class="food-item"><span class="food-icon">🍛</span>台式</div>
-                <div class="food-item"><span class="food-icon">🍰</span>甜點</div>
-            </div>
+            <h3 style="font-size: 18px; margin-bottom: 16px;">近期邀約</h3>
+            <div id="home-list"></div>
         </div>
         <div class="bottom-nav">
-            <div class="nav-item active"><span>🏠</span>首頁</div>
-            <div class="nav-item"><span>👥</span>好友</div>
-            <div class="nav-add" onclick="goToPage('page-invite')">+</div>
-            <div class="nav-item"><span>🎫</span>邀約</div>
-            <div class="nav-item"><span>👤</span>我的</div>
+            <div class="nav-item active" onclick="goToPage('page-home')"><span class="nav-icon">🏠</span>首頁</div>
+            <div class="nav-item" onclick="goToPage('page-friends')"><span class="nav-icon">👥</span>好友</div>
+            <div class="nav-add" onclick="openInviteForm('now')">+</div>
+            <div class="nav-item"><span class="nav-icon">🎫</span>邀約</div>
+            <div class="nav-item"><span class="nav-icon">👤</span>我的</div>
         </div>
     </div>
 
-    <!-- 頁面 2：選擇好友 -->
-    <div id="page-invite" class="page">
-        <div class="header">
-            <div class="header-left">
-                <div class="back-btn" onclick="goToPage('page-home')">❮</div>
-                <div class="logo">選擇好友</div>
+    <!-- 好友頁面 -->
+    <div id="page-friends" class="page">
+        <div class="header"><div class="header-title">好友名單</div></div>
+        <div class="container">
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <input type="text" id="add-friend-input" class="form-control" placeholder="輸入好友名字..." style="flex:1;">
+                <button class="btn btn-primary" style="width: auto; padding: 0 20px; margin: 0;" onclick="addNewFriend()">新增</button>
             </div>
+            <div id="friends-list"></div>
+        </div>
+        <div class="bottom-nav">
+            <div class="nav-item" onclick="goToPage('page-home')"><span class="nav-icon">🏠</span>首頁</div>
+            <div class="nav-item active" onclick="goToPage('page-friends')"><span class="nav-icon">👥</span>好友</div>
+            <div class="nav-add" onclick="openInviteForm('now')">+</div>
+            <div class="nav-item"><span class="nav-icon">🎫</span>邀約</div>
+            <div class="nav-item"><span class="nav-icon">👤</span>我的</div>
+        </div>
+    </div>
+
+    <!-- 發起邀約表單 -->
+    <div id="page-create" class="page">
+        <div class="header">
+            <div class="back-btn" onclick="goToPage('page-home')">❮</div>
+            <div class="header-title" id="form-title">發起邀約</div>
         </div>
         <div class="container">
-            <div class="banner">
-                <span class="step-tag">步驟 1/5</span>
-                <h2>選擇要邀請的好友</h2>
-                <p>只會顯示願意被邀請的好友</p >
+            <div class="form-group">
+                <label class="form-label">聚會主題</label>
+                <input type="text" id="input-theme" class="form-control" placeholder="例如：期中放鬆吃大餐！">
             </div>
+            <div class="form-group" id="time-now-group">
+                <label class="form-label">時間 (隨時約飯)</label>
+                <input type="time" id="input-time-now" class="form-control" value="18:00">
+            </div>
+            <div class="form-group" id="time-later-group" style="display:none;">
+                <label class="form-label">聚會日期</label>
+                <input type="date" id="input-date-later" class="form-control">
+            </div>
+            <div class="form-group">
+                <label class="form-label">每人預算上限</label>
+                <select id="input-budget" class="form-control">
+                    <option value="200">$200 以下</option>
+                    <option value="400" selected>$200 - $400</option>
+                    <option value="600">$400 - $600</option>
+                    <option value="1000">$600 以上</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">想吃什麼？(可多選)</label>
+                <div class="tag-group" id="food-tags">
+                    <div class="tag active" onclick="this.classList.toggle('active')">🍲 火鍋</div>
+                    <div class="tag" onclick="this.classList.toggle('active')">🍣 日式</div>
+                    <div class="tag" onclick="this.classList.toggle('active')">🍖 韓式</div>
+                    <div class="tag" onclick="this.classList.toggle('active')">🍝 義式</div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">邀請好友 (免打擾者無法邀請)</label>
+                <div id="invite-friends-box" class="card" style="padding: 10px 18px;"></div>
+            </div>
+            <button class="btn btn-primary" onclick="submitInvite()">發布邀約並發送通知</button>
+        </div>
+    </div>
+
+    <!-- 邀約詳情 -->
+    <div id="page-detail" class="page">
+        <div class="header">
+            <div class="back-btn" onclick="goToPage('page-home')">❮</div>
+            <div class="header-title">邀約詳情</div>
+        </div>
+        <div class="container" id="detail-content"></div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+        <script>
+        let defaultFriends = [
+            { id: 1, name: "小安", avatar: "👧", status: "online" },
+            { id: 2, name: "阿哲", avatar: "👦", status: "online" },
+            { id: 3, name: "阿明", avatar: "🧑", status: "busy" }
+        ];
+
+        let friendsDB = JSON.parse(localStorage.getItem('ffy_friends')) || defaultFriends;
+        let invitesDB = JSON.parse(localStorage.getItem('ffy_invites')) || [];
+        let currentFormType = 'now';
+
+        function saveDB() {
+            localStorage.setItem('ffy_friends', JSON.stringify(friendsDB));
+            localStorage.setItem('ffy_invites', JSON.stringify(invitesDB));
+        }
+
+        function goToPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            window.scrollTo(0,0);
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.display = 'block';
+            clearTimeout(t.timer);
+            t.timer = setTimeout(() => t.style.display = 'none', 2000);
+        }
+
+        function addNewFriend() {
+            const input = document.getElementById('add-friend-input');
+            const name = input.value.trim();
+            if(!name) return showToast("請輸入好友名字");
+            if(friendsDB.some(f => f.name === name)) return showToast("已經有這個好友了！");
+
+            const avatars = ["🐱", "🐶", "🐼", "🦊", "🐯", "🦁", "🐸", "🐷"];
+            friendsDB.push({ id: Date.now(), name: name, avatar: avatars[Math.floor(Math.random() * avatars.length)], status: "online" });
+            input.value = "";
+            saveDB();
+            renderFriends();
+            showToast("✅ 好友已新增");
+        }
+
+        function renderFriends() {
+            const box = document.getElementById('friends-list');
+            box.innerHTML = "";
+            if(friendsDB.length === 0) return box.innerHTML = `<div class="empty-state">還沒有好友，快新增吧！</div>`;
+
+            friendsDB.forEach(f => {
+                let isBusy = f.status === 'busy';
+                box.innerHTML += `
+                    <div class="card friend-item">
+                        <div class="avatar">${f.avatar}</div>
+                        <div class="friend-info" style="flex:1;">
+                            <h4>${f.name}</h4>
+                            <span class="status-badge ${isBusy?'status-busy':'status-online'}">${isBusy?'免打擾中':'願意被邀請'}</span>
+                        </div>
+                        <div style="cursor:pointer; font-size:20px; color:#ccc;" onclick="toggleFriendStatus(${f.id})">⚙️</div>
+                    </div>
+                `;
+            });
+        }
+
+        function toggleFriendStatus(id) {
+            const f = friendsDB.find(x => x.id === id);
+            f.status = f.status === 'online' ? 'busy' : 'online';
+            saveDB();
+            renderFriends();
+            showToast(f.status === 'busy' ? "已設為免打擾" : "已開放邀請");
+        }
+
+        function openInviteForm(type) {
+            currentFormType = type;
+            document.getElementById('form-title').innerText = type === 'now' ? "⚡ 隨時約飯" : "📅 發起聚會";
+            document.getElementById('time-now-group').style.display = type === 'now' ? 'block' : 'none';
+            document.getElementById('time-later-group').style.display = type === 'later' ? 'block' : 'none';
+
+            if(type === 'later') {
+                let d = new Date(); d.setDate(d.getDate() + 1);
+                document.getElementById('input-date-later').value = d.toISOString().split('T')[0];
+            }
+
+            const box = document.getElementById('invite-friends-box');
+            box.innerHTML = "";
+            if(friendsDB.length === 0) return box.innerHTML = `<div class="empty-state">先去新增好友吧</div>`;
+
+            friendsDB.forEach(f => {
+                const isBusy = f.status === 'busy';
+                box.innerHTML += `
+                    <label class="friend-item" style="${isBusy ? 'opacity:0.4; pointer-events:none;' : ''}">
+                        <input type="checkbox" value="${f.id}" class="cb-friend" style="width:20px;height:20px;accent-color:var(--primary);">
+                        <div class="avatar" style="width:32px;height:32px;font-size:16px;">${f.avatar}</div>
+                        <div class="friend-info" style="flex:1;"><h4>${f.name} ${isBusy?'(免打擾)':''}</h4></div>
+                    </label>
+                `;
+            });
+            goToPage('page-create');
+        }
+
+        function submitInvite() {
+            const theme = document.getElementById('input-theme').value.trim() || "一起吃個飯";
+            const budget = document.getElementById('input-budget').value;
+            let timeStr = currentFormType === 'now' ? "今天 " + document.getElementById('input-time-now').value : document.getElementById('input-date-later').value;
+
+            const invited = [];
+            document.querySelectorAll('.cb-friend:checked').forEach(cb => {
+                const f = friendsDB.find(x => x.id === parseInt(cb.value));
+                if(f) invited.push({ id: f.id, name: f.name, avatar: f.avatar, status: 'pending' });
+            });
+
+            if(invited.length === 0) return showToast("請至少邀請一位好友！");
+
+            const newInvite = { id: Date.now(), type: currentFormType, theme, budget, time: timeStr, friends: invited, status: 'voting', restaurant: null };
+            invitesDB.unshift(newInvite);
+            saveDB();
+            showToast("邀約已發布！");
             
-            <div class="filter-bar">
-                <div class="filter-btn active">所有好友 (8)</div>
-                <div class="filter-btn dot-green">願意被邀請 (6)</div>
-                <div class="filter-btn dot-gray">免打擾中 (2)</div>
-            </div>
+            setTimeout(() => {
+                renderHome();
+                goToPage('page-home');
+            }, 1000);
+        }
 
-            <div class="friend-list">
-                <div class="friend-card selected" onclick="toggleFriend(this)">
-                    <div class="friend-checkbox">✓</div>
-                    <div class="friend-avatar">👧</div>
-                    <div class="friend-info">
-                        <div class="friend-name">小安 <span class="status-dot green"></span></div>
-                        <div class="friend-desc">願意被邀請 · 在線上</div>
+        function renderHome() {
+            const box = document.getElementById('home-list');
+            box.innerHTML = "";
+            if(invitesDB.length === 0) return box.innerHTML = `<div class="empty-state">目前沒有邀約，快發起一個吧！</div>`;
+
+            invitesDB.forEach(inv => {
+                let statusTag = inv.status === 'voting' 
+                    ? `<span style="color:var(--warning); background:#FFF3E0; padding:4px 8px; border-radius:8px; font-size:12px; font-weight:bold;">🟡 投票中</span>`
+                    : `<span style="color:var(--success); background:#E8F5E9; padding:4px 8px; border-radius:8px; font-size:12px; font-weight:bold;">🟢 已確定</span>`;
+
+                box.innerHTML += `
+                    <div class="card" onclick="openDetail(${inv.id})">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                            <h4 style="font-size:16px;">${inv.theme}</h4>
+                            ${statusTag}
+                        </div>
+                        <p style="font-size:13px; color:var(--gray); margin-bottom:6px;">🕒 ${inv.time}</p >
+                        <p style="font-size:13px; color:var(--gray);">💰 預算 $${inv.budget} · 👥 ${inv.friends.length} 人</p >
                     </div>
-                    <div class="friend-tag">超愛吃火鍋！</div>
-                </div>
-                <div class="friend-card selected" onclick="toggleFriend(this)">
-                    <div class="friend-checkbox">✓</div>
-                    <div class="friend-avatar">👦</div>
-                    <div class="friend-info">
-                        <div class="friend-name">阿哲 <span class="status-dot green"></span></div>
-                        <div class="friend-desc">願意被邀請 · 在線上</div>
+                `;
+            });
+        }
+
+        function openDetail(id) {
+            const inv = invitesDB.find(x => x.id === id);
+            if(!inv) return;
+            const box = document.getElementById('detail-content');
+
+            let step1 = 'active', step2 = inv.status === 'matched' ? 'active' : '', step3 = inv.status === 'matched' ? 'active' : '';
+
+            let friendsHTML = "";
+            inv.friends.forEach(f => {
+                let isVoted = f.status === 'voted';
+                friendsHTML += `
+                    <div class="friend-item">
+                        <div class="avatar">${f.avatar}</div>
+                        <div class="friend-info" style="flex:1;"><h4>${f.name}</h4></div>
+                        <div class="vote-status ${isVoted?'vote-yes':'vote-wait'}">
+                            ${isVoted ? '✓ 已投票' : '⏳ 等待中'}
+                        </div>
                     </div>
-                    <div class="friend-tag">今天也想吃飯！</div>
-                </div>
-                <div class="friend-card" onclick="toggleFriend(this)">
-                    <div class="friend-checkbox"></div>
-                    <div class="friend-avatar">👩</div>
-                    <div class="friend-info">
-                        <div class="friend-name">小晴 <span class="status-dot green"></span></div>
-                        <div class="friend-desc">願意被邀請 · 2小時前</div>
+                `;
+            });
+
+            let restaurantHTML = "";
+            if(inv.status === 'matched' && inv.restaurant) {
+                restaurantHTML = `
+                    <h3 style="margin: 24px 0 16px 0; font-size:18px;">🎉 最終確認餐廳</h3>
+                    <div class="res-card selected">
+                        <div class="res-img">🍲</div>
+                        <div class="res-info">
+                            <h4>${inv.restaurant.name}</h4>
+                            <p>⭐ ${inv.restaurant.rating} · 距離 1.2km</p >
+                            <span class="res-tag">符合預算與口味</span>
+                        </div>
                     </div>
-                    <div class="friend-tag">喜歡日式料理</div>
+                    <button class="btn btn-primary" style="margin-top:20px;" onclick="openMap()">📍 開啟 Google 地圖導航</button>
+                    <button class="btn btn-outline" style="margin-top:12px;" onclick="goToPage('page-home')">回首頁</button>
+                `;
+            }
+
+            box.innerHTML = `
+                <div class="progress-bar">
+                    <div class="progress-step ${step1}">1</div>
+                    <div class="progress-step ${step2}">2</div>
+                    <div class="progress-step ${step3}">3</div>
                 </div>
-                <div class="friend-card disabled" onclick="alert('該好友設定為免打擾喔！')">
-                    <div class="friend-checkbox"></div>
-                    <div class="friend-avatar">👦</div>
-                    <div class="friend-info">
-                        <div class="friend-name">阿明 <span class="status-dot gray"></span></div>
-                        <div class="friend-desc">免打擾中 · 離線</div>
-                    </div>
-                    <div class="friend-tag">最近比較忙～</div>
+                
+                <h2 style="margin-bottom:8px;">${inv.theme}</h2>
+                <p style="color:var(--gray); font-size:14px; margin-bottom:24px;">
+                    🕒 ${inv.time} &nbsp;|&nbsp; 💰 $${inv.budget} 以內
+                </p >
+
+                <h3 style="margin-bottom:16px; font-size:16px;">朋友回覆狀況</h3>
+                <div class="card" style="padding:10px 18px;">
+                    ${friendsHTML}
                 </div>
-            </div>
-            <button class="btn-primary" onclick="goToPage('page-condition')">✨ 下一步，設定條件 ❯</button>
-        </div>
-    </div>
+                
+                ${restaurantHTML}
+                <div id="match-btn-area"></div>
+            `;
 
-    <!-- 頁面 3：設定條件 -->
-    <div id="page-condition" class="page">
-        <div class="header">
-            <div class="header-left">
-                <div class="back-btn" onclick="goToPage('page-invite')">❮</div>
-                <div class="logo">設定條件</div>
-            </div>
-        </div>
-        <div class="container">
-            <h2 class="page-title">一起吃飯吧！</h2>
-            <p class="page-subtitle">讓大家選出最適合的時間和餐廳</p >
-            
-            <div class="condition-card">
-                <div class="condition-title">⏰ 時間 (已選 3 個)</div>
-                <div class="condition-value">18:00, 19:00</div>
-            </div>
-            <div class="condition-card">
-                <div class="condition-title">💰 預算 (每人)</div>
-                <div class="condition-value">$200 - $400</div>
-            </div>
-            <div class="condition-section">
-                <div class="condition-title">🍴 口味 (可多選)</div>
-                <div class="tag-group">
-                    <div class="tag active">🍲 火鍋</div>
-                    <div class="tag active">🍣 日式</div>
-                    <div class="tag">🍖 韓式</div>
-                    <div class="tag">🍝 義式</div>
-                    <div class="tag">🍛 台式</div>
-                </div>
-            </div>
-            <button class="btn-primary" onclick="goToPage('page-result')">✨ 開始配對餐廳 ❯</button>
-        </div>
-    </div>
+            goToPage('page-detail');
 
-    <!-- 頁面 4：推薦餐廳 -->
-    <div id="page-result" class="page">
-        <div class="header">
-            <div class="header-left">
-                <div class="back-btn" onclick="goToPage('page-condition')">❮</div>
-                <div class="logo">推薦餐廳</div>
-            </div>
-        </div>
-        <div class="container">
-            <h3 class="page-title">為你們找到 3 家餐廳</h3>
-            <div class="res-card" onclick="goToPage('page-success')">
-                <div class="res-img bg-pink">🍲<div class="res-badge">最推薦</div></div>
-                <div class="res-info">
-                    <div class="res-title">好食光火鍋 <span class="res-rating">⭐ 4.8</span></div>
-                    <div class="res-desc">火鍋 · $300-450/人 · 1.1km</div>
-                </div>
-            </div>
-            <div class="res-card" onclick="goToPage('page-success')">
-                <div class="res-img bg-green">🍣</div>
-                <div class="res-info">
-                    <div class="res-title">日和食堂 <span class="res-rating">⭐ 4.6</span></div>
-                    <div class="res-desc">日式 · $250-400/人 · 1.5km</div>
-                </div>
-            </div>
-        </div>
-    </div>
+            if(inv.status === 'voting') {
+                let allVoted = inv.friends.every(f => f.status === 'voted');
+                if(!allVoted) {
+                    document.getElementById('match-btn-area').innerHTML = `<p style="text-align:center; font-size:12px; color:#999; margin-top:20px;">等待朋友回覆中...</p >`;
+                    setTimeout(() => {
+                        inv.friends.forEach(f => f.status = 'voted');
+                        saveDB();
+                        openDetail(inv.id);
+                    }, 2500);
+                } else {
+                    document.getElementById('match-btn-area').innerHTML = `<button class="btn btn-primary" style="margin-top:20px;" onclick="matchRestaurant(${inv.id})">✨ 大家都投完了！開始配對餐廳</button>`;
+                }
+            }
+        }
 
-    <!-- 頁面 5：最終確認 -->
-    <div id="page-success" class="page">
-        <div class="header"><div class="logo center-logo">聚餐已確定！</div></div>
-        <div class="container">
-            <div class="success-icon">🎉</div>
-            <h2 class="center-text">我們要去吃飯啦！</h2>
-            <p class="center-text sub">感謝大家的參與～期待見面！</p >
+        function matchRestaurant(id) {
+            const inv = invitesDB.find(x => x.id === id);
+            showToast("AI 正在為你們尋找最適合的餐廳...");
+            setTimeout(() => {
+                inv.status = 'matched';
+                inv.restaurant = { name: "好食光火鍋", rating: "4.8" };
+                saveDB();
+                renderHome();
+                openDetail(id);
+                showToast("🎉 配對成功！");
+            }, 2000);
+        }
 
-            <div class="detail-box">
-                <h3>聚會資訊</h3>
-                <div class="detail-row"><span>日期時間</span> <span>2026/10/25 (六) 18:00</span></div>
-                <div class="detail-row"><span>人數</span> <span>3 人 (已確認)</span></div>
-                <div class="detail-row"><span>餐廳</span> <span class="text-pink">好食光火鍋</span></div>
-            </div>
+        function openMap() {
+            window.open('https://www.google.com/maps/search/?api=1&query=台北市大安區溫州街', '_blank');
+        }
 
-            <button class="btn-primary" onclick="openMap()">📍 開啟 Google 地圖導航</button>
-            <button class="btn-outline" style="margin-top:10px;" onclick="goToPage('page-home')">回首頁</button>
-        </div>
-    </div>
-
-    <!-- 引入 JS 邏輯檔 -->
-    <script src="app.js"></script>
+        renderHome();
+        renderFriends();
+    </script>
 </body>
 </html>
